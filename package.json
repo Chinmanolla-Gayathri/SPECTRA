@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node node_modules/tsx/dist/cli.mjs server.ts",
-    "build": "vite build && npx esbuild server.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=dist/server.js",
-    "start": "tsx server.ts",
+    "build": "npm run install:browsers && node node_modules/vite/bin/vite.js build && node node_modules/esbuild/bin/esbuild server.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=dist/server.js",
+    "install:browsers": "node node_modules/playwright/cli.js install chromium",
+    "start": "node dist/server.js",
     "clean": "rm -rf dist server.js",
     "lint": "node node_modules/typescript/bin/tsc --noEmit"
   },
