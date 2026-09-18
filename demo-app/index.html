@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexAthletics - Performance Running Shoes & Apparel</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #131b2e;
+      --card: #1a243b;
+      --border: #2a3754;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --accent: #2563eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .brand { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+    .nav-actions { display: flex; gap: 16px; align-items: center; }
+    .cart-btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .cart-count { background: #ef4444; color: white; border-radius: 99px; padding: 2px 7px; font-size: 12px; }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+    .filters { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; height: fit-content; }
+    .filter-group { margin-bottom: 20px; }
+    .filter-group h4 { font-size: 14px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .filter-btn { display: block; width: 100%; text-align: left; padding: 8px 12px; border-radius: 6px; background: transparent; border: 1px solid var(--border); color: var(--text); margin-bottom: 6px; cursor: pointer; font-size: 13px; }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); }
+    /* A11Y Issue intentionally: missing aria-label */
+    .filter-clear { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; margin-top: 8px; }
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .product-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.15s; }
+    .product-card:hover { transform: translateY(-2px); }
+    .product-img { width: 100%; height: 160px; object-fit: cover; background: #1e293b; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+    .product-info { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .product-price { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
+    .add-to-cart { margin-top: auto; background: var(--accent); border: none; color: white; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    
+    /* Cart Modal / View */
+    #cart-view { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; max-width: 500px; width: 90%; padding: 24px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    /* Low contrast UX & a11y defect on guest checkout button intentionally */
+    .guest-btn { background: #1e293b; color: #475569; border: 1px solid #334155; padding: 10px 16px; border-radius: 6px; cursor: pointer; margin-top: 12px; width: 100%; font-weight: 600; }
+    .guest-btn:hover { color: #94a3b8; }
+    .checkout-screen { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; max-width: 600px; margin: 40px auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">⚡ APEX ATHLETICS</div>
+    <div class="nav-actions">
+      <button class="cart-btn" id="open-cart-btn" onclick="openCart()">
+        🛒 Cart <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="shop-container" class="container">
+    <aside class="filters">
+      <div class="filter-group">
+        <h4>Color</h4>
+        <button class="filter-btn active" onclick="filterColor('all')">All Colors</button>
+        <button class="filter-btn" id="filter-blue" onclick="filterColor('blue')">Blue Only</button>
+        <button class="filter-btn" onclick="filterColor('red')">Red Only</button>
+        <button class="filter-btn" onclick="filterColor('black')">Black Only</button>
+      </div>
+      <div class="filter-group">
+        <h4>Max Price</h4>
+        <button class="filter-btn active" onclick="filterPrice(10000)">All Prices</button>
+        <button class="filter-btn" id="filter-price-5000" onclick="filterPrice(5000)">Under ₹5,000</button>
+      </div>
+      <!-- Unlabeled clear button intentional WCAG test -->
+      <button class="filter-clear" onclick="resetFilters()">Reset All Filters</button>
+    </aside>
+
+    <main>
+      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 id="catalog-title">Men's & Women's Running Shoes (6 items)</h2>
+      </div>
+      <div class="products-grid" id="products-grid">
+        <!-- Injected via JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Cart Modal -->
+  <div id="cart-view">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Your Shopping Bag</h3>
+        <button onclick="closeCart()" style="background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <div id="cart-items" style="margin-bottom: 16px; max-height: 200px; overflow-y: auto;">
+        <!-- Items here -->
+      </div>
+      <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 18px;">
+          <span>Subtotal:</span>
+          <span id="cart-total">₹0</span>
+        </div>
+      </div>
+      <button style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-bottom: 8px;" onclick="goToCheckout(false)">
+        Sign In & Checkout
+      </button>
+      <button id="guest-checkout-cta" class="guest-btn" onclick="goToCheckout(true)">
+        Continue as Guest (No Account Required)
+      </button>
+    </div>
+  </div>
+
+  <!-- Checkout View -->
+  <div id="checkout-view" class="checkout-screen">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+      <h2 style="color: var(--primary);">Checkout: Guest Order Review</h2>
+      <span style="background: #15803d; color: #bbf7d0; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">GUEST MODE VERIFIED</span>
+    </div>
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+      <h4>Order Summary</h4>
+      <div id="checkout-summary-items" style="margin-top: 10px;"></div>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button style="flex: 1; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;" onclick="alert('Demo Goal Completed Successfully!')">
+        Place Guest Order (Demo)
+      </button>
+      <button style="padding: 12px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; cursor: pointer;" onclick="window.location.reload()">
+        Back to Store
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const products = [
+      { id: "shoe-1", title: "Apex Velocity Nitro (Blue)", price: 4499, color: "blue", type: "running", emoji: "👟" },
+      { id: "shoe-2", title: "Apex Aero Stride (Blue)", price: 3899, color: "blue", type: "running", emoji: "🏃‍♂️" },
+      { id: "shoe-3", title: "Apex Carbon Pro (Blue/Gold)", price: 8999, color: "blue", type: "racing", emoji: "⚡" },
+      { id: "shoe-4", title: "Apex Trail Blazer (Black)", price: 4799, color: "black", type: "running", emoji: "🥾" },
+      { id: "shoe-5", title: "Apex Pulse Blaze (Red)", price: 3499, color: "red", type: "running", emoji: "🔥" },
+      { id: "shoe-6", title: "Apex Ultra Cushion (Grey)", price: 6299, color: "grey", type: "running", emoji: "☁️" }
+    ];
+
+    let cart = [];
+    let activeColor = 'all';
+    let maxPrice = 10000;
+
+    function renderProducts() {
+      const grid = document.getElementById('products-grid');
+      const filtered = products.filter(p => {
+        const matchColor = activeColor === 'all' || p.color === activeColor;
+        const matchPrice = p.price <= maxPrice;
+        return matchColor && matchPrice;
+      });
+
+      document.getElementById('catalog-title').innerText = `Men's & Women's Running Shoes (${filtered.length} items)`;
+      grid.innerHTML = filtered.map(p => `
+        <div class="product-card" id="card-${p.id}">
+          <div class="product-img">${p.emoji}</div>
+          <div class="product-info">
+            <h3 class="product-title">${p.title}</h3>
+            <div class="product-price">₹${p.price.toLocaleString('en-IN')}</div>
+            <button class="add-to-cart" id="add-${p.id}" onclick="addToCart('${p.id}')">Add to Bag</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterColor(c) {
+      activeColor = c;
+      renderProducts();
+    }
+
+    function filterPrice(p) {
+      maxPrice = p;
+      renderProducts();
+    }
+
+    function resetFilters() {
+      activeColor = 'all';
+      maxPrice = 10000;
+      renderProducts();
+    }
+
+    function addToCart(id) {
+      const p = products.find(item => item.id === id);
+      if (p) {
+        cart.push(p);
+        document.getElementById('cart-count').innerText = cart.length;
+        openCart();
+      }
+    }
+
+    function openCart() {
+      const modal = document.getElementById('cart-view');
+      const itemsList = document.getElementById('cart-items');
+      const totalEl = document.getElementById('cart-total');
+      
+      if (cart.length === 0) {
+        itemsList.innerHTML = '<p style="color:var(--muted); text-align:center; padding:20px;">Your bag is currently empty.</p>';
+        totalEl.innerText = '₹0';
+      } else {
+        const total = cart.reduce((acc, curr) => acc + curr.price, 0);
+        itemsList.innerHTML = cart.map(item => `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:var(--card); padding:8px 12px; border-radius:6px;">
+            <span>${item.emoji} ${item.title}</span>
+            <span style="font-weight:700; color:var(--primary);">₹${item.price.toLocaleString('en-IN')}</span>
+          </div>
+        `).join('');
+        totalEl.innerText = `₹${total.toLocaleString('en-IN')}`;
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeCart() {
+      document.getElementById('cart-view').style.display = 'none';
+    }
+
+    function goToCheckout(isGuest) {
+      closeCart();
+      document.getElementById('shop-container').style.display = 'none';
+      const checkout = document.getElementById('checkout-view');
+      checkout.style.display = 'block';
+
+      const summary = document.getElementById('checkout-summary-items');
+      const total = cart.reduce((acc, curr) => acc + curr.price, 0);
+      summary.innerHTML = `
+        <p><strong>Customer Type:</strong> ${isGuest ? 'Guest Checkout (Anonymous)' : 'Registered Member'}</p>
+        <p><strong>Items:</strong> ${cart.map(i => i.title).join(', ')}</p>
+        <p style="font-size: 18px; color: var(--primary); margin-top: 8px;"><strong>Total Due:</strong> ₹${total.toLocaleString('en-IN')}</p>
+      `;
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>

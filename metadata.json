@@ -1,0 +1,6 @@
+{
+  "name": "SPECTRA - Autonomous UI/UX & Accessibility Testing",
+  "description": "Autonomous black-box UI/UX and accessibility testing framework powered by Gemini 3.8 Flash, state graph mapping, friction analysis, and visual evidence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
